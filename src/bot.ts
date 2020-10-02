@@ -22,21 +22,25 @@ export default class Bot {
             if (command === undefined) return
             command = command.toLowerCase()
 
-            await testIfCmdEdt(command, message)
+            let date = args.shift()
+            if (!date) {
+                date = moment(Date.now()).locale("fr").format("YYYY-MM-DD")
+            }
+
+            console.log(command);
             
-
-
-
+            await testIfCmdEdt(command, date, message)
         });
     }
 }
 
-async function testIfCmdEdt(command: string, message:Discord.Message){
+async function testIfCmdEdt(command: string,date:string, message: Discord.Message) {
     let code = EDT.get(command)
     if (code) {
         const lp = command.toUpperCase()
         let m = await message.channel.send(`Récupération de l'emplois du temps: ${lp.toUpperCase()}...`);
-        reader.readEdtId(code).then((response) => {
+        reader.readEdtId(code, date)
+        .then((response) => {
             let message = ""
 
             let cours: any[] = []
@@ -50,7 +54,12 @@ async function testIfCmdEdt(command: string, message:Discord.Message){
                 message += formatCours(cour.summary as any, cour.start as any, cour.end as any, cour.location as any, cour.description as any)
             }
 
-            m.edit(`**${getDay(Date.now() as any)}** ${lp.toUpperCase()}\n ${message}`);
+            m.edit(`**${getDay(date as any)}** ${lp.toUpperCase()}\n ${message}`);
+        })
+        .catch(error => {
+            console.log(error);
+            
+            m.edit(error);
         })
 
     }
@@ -166,6 +175,7 @@ const customEmojis = new Map([
     ["BONNAUD LAURENT", ":exploding_head:"],
     ["DUPUY CHESSA SOPHIE", " :woman_with_veil:"],
     ["BLANCO-LAINE GAELLE", " :woman_with_veil:"],
-    ["RIEU DOMINIQUE", ":woman_superhero:"]
+    ["RIEU DOMINIQUE", ":woman_superhero:"],
+    ["MULOT MATHIEU", ":rat:"]
 ]);
 
