@@ -22,53 +22,38 @@ export default class Bot {
             if (command === undefined) return
             command = command.toLowerCase()
 
-            if (command === "aw") {
-                let m = await message.channel.send("Récupération de l'emplois du temps: AW...");
-                reader.readAW().then((response: ical.CalendarResponse) => {
-                    let message = ""
+            await testIfCmdEdt(command, message)
+            
 
-                    let cours: any[] = []
-                    for (const key in response) {
-                        cours.push(response[key])
-                    }
 
-                    cours.sort((a, b) => moment(a.start).unix() - moment(b.start).unix())
 
-                    for (const cour of cours) {
-                        message += formatCours(cour.summary as any, cour.start as any, cour.end as any, cour.location as any, cour.description as any)
-                    }
-
-                    m.edit("**" + getDay(Date.now() as any) + "** AW\n" + message);
-                });
-            }
-
-            if (command === "simo") {
-                let m = await message.channel.send("Récupération de l'emplois du temps: SIMO...");
-                reader.readSIMO().then((response: ical.CalendarResponse) => {
-                    let message = ""
-
-                    let cours: any[] = []
-                    for (const key in response) {
-                        cours.push(response[key])
-                    }
-
-                    cours.sort((a, b) => moment(a.start).unix() - moment(b.start).unix())
-
-                    for (const cour of cours) {
-                        message += formatCours(cour.summary as any, cour.start as any, cour.end as any, cour.location as any, cour.description as any)
-                    }
-
-                    m.edit("**" + getDay(Date.now() as any) + "** SIMO\n" + message);
-                });
-            }
         });
     }
+}
 
-    /* sendAWEdt() {
-        readAW().then((response: ical.CalendarResponse) => {
-            console.log(response);
-        });
-    } */
+async function testIfCmdEdt(command: string, message:Discord.Message){
+    let code = EDT.get(command)
+    if (code) {
+        const lp = command.toUpperCase()
+        let m = await message.channel.send(`Récupération de l'emplois du temps: ${lp.toUpperCase()}...`);
+        reader.readEdtId(code).then((response) => {
+            let message = ""
+
+            let cours: any[] = []
+            for (const key in response) {
+                cours.push(response[key])
+            }
+
+            cours.sort((a, b) => moment(a.start).unix() - moment(b.start).unix())
+
+            for (const cour of cours) {
+                message += formatCours(cour.summary as any, cour.start as any, cour.end as any, cour.location as any, cour.description as any)
+            }
+
+            m.edit(`**${getDay(Date.now() as any)}** ${lp.toUpperCase()}\n ${message}`);
+        })
+
+    }
 }
 
 function formatCours(UE: string, start: string, end: string, room: string, description: string) {
@@ -78,7 +63,7 @@ function formatCours(UE: string, start: string, end: string, room: string, descr
 
     //:regional_indicator_w:
     for (const description of descriptionLines) {
-        
+
         if (description == "SIMO" || description == "AW" || description == "BIG DATA" || description == "ASSR") {
             let color = colorLp.get(description)
 
@@ -88,7 +73,7 @@ function formatCours(UE: string, start: string, end: string, room: string, descr
 
         }
     }
-    descriptionFormatted=descriptionFormatted.slice(0,-2)
+    descriptionFormatted = descriptionFormatted.slice(0, -2)
     descriptionFormatted += "]\n"
 
     for (let description of descriptionLines) {
@@ -119,9 +104,9 @@ ${descriptionFormatted}
 `
 }
 
-function getFullName(name: string){
+function getFullName(name: string) {
     let split = name.split(" ")
-    if(split.length < 2) return name
+    if (split.length < 2) return name
     let firstName = split[0]
     let lastName = split[1]
 
@@ -131,9 +116,9 @@ function getFullName(name: string){
 function capitalizeFirstLetter(string: string) {
     string = string.toLowerCase()
     return string.charAt(0).toUpperCase() + string.slice(1);
-  }
+}
 
-function getRooms(rooms: string){
+function getRooms(rooms: string) {
     let resultat = ""
     let roomsParsed = rooms.split(",")
     for (const room of roomsParsed) {
@@ -147,7 +132,7 @@ function getDay(date: string) {
 }
 
 function formatDate(date: string) {
-    let dateFormatted = moment(date).format("hh:mm A")
+    let dateFormatted = moment(date).locale("fr").format("hh:mm A")
     let hour: any = dateFormatted.split(" ")[0].split(":")[0]
     let minuts = dateFormatted.split(" ")[0].split(":")[1]
     let isPm = dateFormatted.split(" ")[1] === "PM"
@@ -158,6 +143,13 @@ function formatDate(date: string) {
 
     return hour + ":" + minuts
 }
+
+const EDT = new Map([
+    ["aw", 40270],
+    ["simo", 41451],
+    ["assr", 40681],
+    ["big-data", 41571]
+]);
 
 const colorLp = new Map([
     ["AW", ":red_circle:"],
@@ -173,6 +165,7 @@ const customEmojis = new Map([
     ["BLIGNY CAROLINE", ":flatbread:"],
     ["BONNAUD LAURENT", ":exploding_head:"],
     ["DUPUY CHESSA SOPHIE", " :woman_with_veil:"],
-    ["BLANCO-LAINE GAELLE", " :woman_with_veil:"]
+    ["BLANCO-LAINE GAELLE", " :woman_with_veil:"],
+    ["RIEU DOMINIQUE", ":woman_superhero:"]
 ]);
 

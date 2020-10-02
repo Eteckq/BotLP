@@ -2,12 +2,9 @@ import ical from "node-ical"
 import moment from "moment"
 const config = require('../config.json');
 
-function readAW() {
-	return ical.async.fromURL(getUrlFromRessourcesId(config.AW_URL))
-};
-function readSIMO(){
-	return ical.async.fromURL(getUrlFromRessourcesId(config.SIMO_URL))
-};
+function readEdtId(id: number){
+	return ical.async.fromURL(getUrlFromRessourcesId(id))
+}
 
 function getUrlFromRessourcesId(id: number) {
 	//2020-10-01
@@ -15,4 +12,4 @@ function getUrlFromRessourcesId(id: number) {
 	return `https://ade-uga.grenet.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=${id}&projectId=8&calType=ical&firstDate=${date}&lastDate=${date}`;
 }
 
-export default {readAW, readSIMO}
+export default {readEdtId}
