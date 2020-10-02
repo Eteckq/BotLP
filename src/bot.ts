@@ -13,7 +13,7 @@ export default class Bot {
 
         client.on("ready", () => {
             console.log("Bot UP!");
-            new cron.CronJob("00 30 07 * * 1-5", this.sendEdts).start();
+            new cron.CronJob("00 30 13 * * 1-5", this.sendEdts).start();
         });
 
         client.on("message", async (message) => {
@@ -228,4 +228,5 @@ const customEmojis = new Map([
     ["BLANCO-LAINE GAELLE", " :woman_with_veil:"],
     ["RIEU DOMINIQUE", ":woman_superhero:"],
     ["MULOT MATHIEU", ":rat:"],
+    ["COAT FRANCOISE", ":woman:"]
 ]);
