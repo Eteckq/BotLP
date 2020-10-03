@@ -31,6 +31,4 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         PORT: ${{ secrets.PORT }}
         KEY: ${{ secrets.SSHKEY }}
-        script:
-          - cd "/home/yohan/nodejs/bot-lp"
-          - npm run build
+        script: cd "/home/yohan/nodejs/bot-lp"; npm run build; pm2 restart Bot
