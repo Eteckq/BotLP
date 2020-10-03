@@ -1,4 +1,4 @@
-import getEdt, {DayEdt} from "./wrapper"
+import getEdt, { DayEdt } from "./wrapper"
 import moment from "moment"
 
 
@@ -6,25 +6,21 @@ function readEdtId(id: number, date: string): Promise<DayEdt> {
 	return new Promise((resolve, reject) => {
 		if (moment(date, 'YYYY-MM-DD', true).isValid()) {
 			getEdt(getUrlFromRessourcesId(id, date))
-			.then((day: DayEdt) => {
-				day.day = getDay(date)
-				resolve(day)
-			})
-			.catch((error) => {
-				reject(error)
-			})
+				.then((day: DayEdt) => {
+					day.day = getDay(date)
+					resolve(day)
+				})
+				.catch((error) => {
+					reject(error)
+				})
 		} else {
 			reject("Invalid date format (YYYY-MM-DD)")
 		}
 	})
-
-	
-
-	
 }
 
 function getDay(date: string) {
-    return moment(date).locale("fr").format("DD MMMM YYYY");
+	return moment(date).locale("fr").format("DD MMMM YYYY");
 }
 
 function getUrlFromRessourcesId(id: number, date: string) {

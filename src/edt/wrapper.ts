@@ -101,104 +101,6 @@ function getRooms(location: string) {
     return resultat;
 }
 
-// function formatCours(
-//     UE: string,
-//     start: string,
-//     end: string,
-//     room: string,
-//     description: string
-// ) {
-//     let descriptionLines = (description as string).split("\n").slice(1, -3);
-//     let descriptionFormatted = "[";
-
-//     //:regional_indicator_w:
-//     for (const description of descriptionLines) {
-//         if (
-//             description == "SIMO" ||
-//             description == "AW" ||
-//             description == "BIG DATA" ||
-//             description == "ASSR"
-//         ) {
-//             let color = colorLp.get(description);
-
-//             if (color) {
-//                 descriptionFormatted += description + ", ";
-//             }
-//         }
-//     }
-//     descriptionFormatted = descriptionFormatted.slice(0, -2);
-//     descriptionFormatted += "]\n";
-
-//     for (let description of descriptionLines) {
-//         if (
-//             description != "BIG DATA" &&
-//             description != "SIMO" &&
-//             description != "AW" &&
-//             description != ""
-//         ) {
-//             let emoji = customEmojis.get(description);
-
-//             if (emoji) {
-//                 descriptionFormatted += emoji + " " + getFullName(description) + "  ";
-//             } else {
-//                 descriptionFormatted += getFullName(description) + "  ";
-//             }
-//         }
-//     }
-
-//     let startFormat = formatDate(start);
-//     let endFormat = formatDate(end);
-
-//     return `
-// :clock2: **${startFormat}h - ${endFormat}h**            :pencil: ${UE}
-// :door: ${getRooms(room)}
-// ${descriptionFormatted}
-
-// `;
-// }
-
-// function getEdtMsg(lp: string, date: string) {
-//     return new Promise((resolve, reject) => {
-//         let code = EDT.get(lp);
-
-//         if (!code) {
-//             reject("Code invalide");
-//         } else {
-//             reader
-//                 .readEdtId(code, date)
-//                 .then((response) => {
-//                     resolve(response)
-//                     return
-//                     let message = "";
-
-//                     let cours: any[] = [];
-//                     // for (const key in response) {
-//                     //     cours.push(response[key]);
-//                     // }
-
-//                     cours.sort((a, b) => moment(a.start).unix() - moment(b.start).unix());
-
-//                     for (const cour of cours) {
-//                         message += formatCours(
-//                             cour.summary as any,
-//                             cour.start as any,
-//                             cour.end as any,
-//                             cour.location as any,
-//                             cour.description as any
-//                         );
-//                     }
-
-//                     resolve(message);
-//                 })
-//                 .catch((error) => {
-//                     console.log(error);
-
-//                     reject(error);
-//                 });
-//         }
-//     });
-// }
-
 function formatDate(date: DateWithTimeZone) {
     let dateFormatted = moment(date).locale("fr").format("hh:mm A");
     let hour: any = dateFormatted.split(" ")[0].split(":")[0];
@@ -236,13 +138,6 @@ function getFormattedTeacher(name: string) {
 
     return capitalizeName
 }
-
-// const colorLp = new Map([
-//     ["AW", ":red_circle:"],
-//     ["BIG DATA", ":purple_circle:"],
-//     ["SIMO", ":green_circle:"],
-//     ["ASSR", ":blue_circle:"],
-// ]);
 
 const lpList = ["AW", "SIMO", "ASSR", "BIG DATA"]
 

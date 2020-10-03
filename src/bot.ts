@@ -21,10 +21,7 @@ export default class Bot {
 
             if (!message.guild) {
                 await message.channel.send("salut :)");
-            } /*  else {
-                console.log(message.guild.id);
-                console.log(message.channel.id);
-            } */
+            }
 
             if (!message.content.startsWith("!")) return;
             const args = message.content.slice(1).trim().split(/ +/g);
@@ -75,9 +72,6 @@ export default class Bot {
                     dayEdt.day = moment(Date.now()).locale("fr").format("DD MMMM YYYY");
                     if (dayEdt.classes.length > 0)
                         (channel as any).send(getEdtMessage(dayEdt));
-                    else {
-                        (channel as any).send(":partying_face: Pas de cours !")
-                    }
                 });
             }
         });
