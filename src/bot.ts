@@ -1,19 +1,19 @@
-import ical from "node-ical";
 import Discord from "discord.js";
-import reader from "./edtReader";
+import reader from "./edt/reader";
 import moment from "moment";
 import cron from "cron";
+import { DayEdt } from "./edt/wrapper";
 
 export default class Bot {
     private client: Discord.Client;
 
     constructor(client: Discord.Client) {
         this.client = client;
-        
+
 
         client.on("ready", () => {
             console.log("Bot UP!");
-            new cron.CronJob("00 30 13 * * 1-5", this.sendEdts).start();
+            new cron.CronJob("00 30 07 * * 1-5", this.sendEdts).start();
         });
 
         client.on("message", async (message) => {
@@ -44,164 +44,82 @@ export default class Bot {
                 let m = await message.channel.send(
                     `Récupération de l'emplois du temps: ${lp}...`
                 );
-                let msg = await getEdtMsg(lp, date);
-                m.edit(`**${getDay(date as any)}** ${lp.toUpperCase()}\n ${msg}`);
+                let dayEdt = await reader.readEdtId(code, date)
+                dayEdt.lp = lp
+
+                if (dayEdt.classes.length > 0) {
+                    m.edit(getEdtMessage(dayEdt))
+                } else {
+                    m.edit(":partying_face: Pas de cours !")
+                }
             }
         });
     }
 
     sendEdts = () => {
-        this.sendEdt("AW")
-        this.sendEdt("SIMO")
+        this.sendEdt("AW", "760511695151038524")
+        this.sendEdt("SIMO", "760511738268352552")
+        this.sendEdt("ASSR", "760511794350915615")
+        this.sendEdt("BIG-DATA", "760511850143809536")
     }
 
-    sendEdt (lp: string) {
+    sendEdt(lp: string, channelId: string) {
         let date = moment(Date.now()).locale("fr").format("YYYY-MM-DD");
         this.client.guilds.fetch("760487519602212884").then((guild) => {
-            let channel = guild.channels.cache.get("761502893265387530");
+            let channel = guild.channels.cache.get(channelId);
             if (channel) {
-                getEdtMsg(lp, date).then((msg) => {
-                    (channel as any).send(msg);
+                let code = EDT.get(lp.toUpperCase());
+                if (!code) return
+                reader.readEdtId(code, date).then((dayEdt) => {
+                    dayEdt.lp = lp
+                    dayEdt.day = moment(Date.now()).locale("fr").format("DD MMMM YYYY");
+                    if (dayEdt.classes.length > 0)
+                        (channel as any).send(getEdtMessage(dayEdt));
+                    else {
+                        (channel as any).send(":partying_face: Pas de cours !")
+                    }
                 });
             }
         });
     }
 }
 
-function getEdtMsg(lp: string, date: string) {
-    return new Promise((resolve, reject) => {
-        let code = EDT.get(lp);
+function getEdtMessage(dayEdt: DayEdt) {
 
-        if (!code) {
-            reject("Code invalide");
-        } else {
-            reader
-                .readEdtId(code, date)
-                .then((response) => {
-                    let message = "";
+    let message = `**${dayEdt.day}** ${dayEdt.lp}\n`
 
-                    let cours: any[] = [];
-                    for (const key in response) {
-                        cours.push(response[key]);
-                    }
+    for (const classes of dayEdt.classes) {
+        message += `\n:clock2: **${classes.start}h - ${classes.end}h**            :pencil: ${classes.name}\n`;
 
-                    cours.sort((a, b) => moment(a.start).unix() - moment(b.start).unix());
-
-                    for (const cour of cours) {
-                        message += formatCours(
-                            cour.summary as any,
-                            cour.start as any,
-                            cour.end as any,
-                            cour.location as any,
-                            cour.description as any
-                        );
-                    }
-
-                    resolve(message);
-                })
-                .catch((error) => {
-                    console.log(error);
-
-                    reject(error);
-                });
-        }
-    });
-}
-
-function formatCours(
-    UE: string,
-    start: string,
-    end: string,
-    room: string,
-    description: string
-) {
-    let descriptionLines = (description as string).split("\n").slice(1, -3);
-    let descriptionFormatted = "[";
-
-    //:regional_indicator_w:
-    for (const description of descriptionLines) {
-        if (
-            description == "SIMO" ||
-            description == "AW" ||
-            description == "BIG DATA" ||
-            description == "ASSR"
-        ) {
-            let color = colorLp.get(description);
-
-            if (color) {
-                descriptionFormatted += description + ", ";
+        if (classes.locations.length > 0) {
+            message += `:door: `
+            for (const room of classes.locations) {
+                message += `${room} - `
             }
+            message = message.slice(0, -3)
+            message += `\n`
         }
-    }
-    descriptionFormatted = descriptionFormatted.slice(0, -2);
-    descriptionFormatted += "]\n";
 
-    for (let description of descriptionLines) {
-        if (
-            description != "BIG DATA" &&
-            description != "SIMO" &&
-            description != "AW" &&
-            description != ""
-        ) {
-            let emoji = customEmojis.get(description);
-
-            if (emoji) {
-                descriptionFormatted += emoji + " " + getFullName(description) + "  ";
-            } else {
-                descriptionFormatted += getFullName(description) + "  ";
+        if (classes.lps.length > 0) {
+            for (const lp of classes.lps) {
+                message += `${lp}, `
             }
+            message = message.slice(0, -2)
+            message += `\n`
         }
+
+        if (classes.teachers.length > 0) {
+            for (const teacher of classes.teachers) {
+                message += `${teacher}  `
+            }
+            message = message.slice(0, -2)
+            message += `\n`
+        }
+
     }
 
-    let startFormat = formatDate(start);
-    let endFormat = formatDate(end);
+    return message
 
-    return `
-:clock2: **${startFormat}h - ${endFormat}h**            :pencil: ${UE}
-:door: ${getRooms(room)}
-${descriptionFormatted}
-
-`;
-}
-
-function getFullName(name: string) {
-    let split = name.split(" ");
-    if (split.length < 2) return name;
-    let firstName = split[0];
-    let lastName = split[1];
-
-    return firstName + " " + capitalizeFirstLetter(lastName);
-}
-
-function capitalizeFirstLetter(string: string) {
-    string = string.toLowerCase();
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function getRooms(rooms: string) {
-    let resultat = "";
-    let roomsParsed = rooms.split(",");
-    for (const room of roomsParsed) {
-        resultat += room.split("-")[2] + "   ";
-    }
-    return resultat;
-}
-
-function getDay(date: string) {
-    return moment(date).locale("fr").format("DD MMMM YYYY");
-}
-
-function formatDate(date: string) {
-    let dateFormatted = moment(date).locale("fr").format("hh:mm A");
-    let hour: any = dateFormatted.split(" ")[0].split(":")[0];
-    let minuts = dateFormatted.split(" ")[0].split(":")[1];
-    let isPm = dateFormatted.split(" ")[1] === "PM";
-
-    if (isPm && hour !== "12") {
-        hour = parseInt(hour) + 12;
-    }
-
-    return hour + ":" + minuts;
 }
 
 const EDT = new Map([
@@ -211,22 +129,3 @@ const EDT = new Map([
     ["BIG-DATA", 41571],
 ]);
 
-const colorLp = new Map([
-    ["AW", ":red_circle:"],
-    ["BIG DATA", ":purple_circle:"],
-    ["SIMO", ":green_circle:"],
-    ["ASSR", ":blue_circle:"],
-]);
-
-const customEmojis = new Map([
-    ["BLANCHON HERVE", ":mx_claus:"],
-    ["BRUNET-MANQUAT FRANCIS", ":mage:"],
-    ["FRONT AGNES", ":woman:"],
-    ["BLIGNY CAROLINE", ":flatbread:"],
-    ["BONNAUD LAURENT", ":exploding_head:"],
-    ["DUPUY CHESSA SOPHIE", " :woman_with_veil:"],
-    ["BLANCO-LAINE GAELLE", " :woman_with_veil:"],
-    ["RIEU DOMINIQUE", ":woman_superhero:"],
-    ["MULOT MATHIEU", ":rat:"],
-    ["COAT FRANCOISE", ":woman:"]
-]);

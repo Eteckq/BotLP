@@ -1,12 +1,14 @@
-import ical from "node-ical"
+import getEdt, {DayEdt} from "./wrapper"
 import moment from "moment"
 
-function readEdtId(id: number, date: string): Promise<ical.CalendarResponse> {
+
+function readEdtId(id: number, date: string): Promise<DayEdt> {
 	return new Promise((resolve, reject) => {
 		if (moment(date, 'YYYY-MM-DD', true).isValid()) {
-			ical.async.fromURL(getUrlFromRessourcesId(id, date))
-			.then((response) => {
-				resolve(response)
+			getEdt(getUrlFromRessourcesId(id, date))
+			.then((day: DayEdt) => {
+				day.day = getDay(date)
+				resolve(day)
 			})
 			.catch((error) => {
 				reject(error)
@@ -19,6 +21,10 @@ function readEdtId(id: number, date: string): Promise<ical.CalendarResponse> {
 	
 
 	
+}
+
+function getDay(date: string) {
+    return moment(date).locale("fr").format("DD MMMM YYYY");
 }
 
 function getUrlFromRessourcesId(id: number, date: string) {
