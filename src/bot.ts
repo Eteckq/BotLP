@@ -55,7 +55,8 @@ export default class Bot {
             dayEdt.lp = lp
 
             if (dayEdt.classes.length > 0) {
-                m.edit(getEdtMessage(dayEdt))
+                m.delete()
+                await message.channel.send(getEdtMessage(dayEdt))
             } else {
                 m.edit(":partying_face: Pas de cours !")
             }
@@ -91,8 +92,8 @@ function getEdtMessage(dayEdt: DayEdt): Discord.MessageEmbed {
 
     const exampleEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
-            .setTitle(dayEdt.lp)
-            .setDescription(dayEdt.day)
+            .setTitle(dayEdt.lp + " - " + dayEdt.day)
+            // .setDescription(dayEdt.day)
 
 
     for (const classes of dayEdt.classes) {
@@ -123,9 +124,9 @@ function getEdtMessage(dayEdt: DayEdt): Discord.MessageEmbed {
         if (classes.teachers.length > 0) {
             let txt = ""
             for (const teacher of classes.teachers) {
-                txt += `${teacher}  `
+                txt += `${teacher}\n`
             }
-            txt = txt.slice(0, -2)
+            txt = txt.slice(0, -1)
             exampleEmbed.addField('Profs', txt)
             // exampleEmbed.addField("\u200B", "t")
         }
