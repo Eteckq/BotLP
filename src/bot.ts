@@ -1,8 +1,11 @@
-import Discord from "discord.js";
+import Discord, { GuildChannel } from "discord.js";
 import reader from "./edt/reader";
 import moment from "moment";
 import cron from "cron";
 import { DayEdt } from "./edt/wrapper";
+import { lookup } from "dns";
+
+const prefix = "y!"
 
 export default class Bot {
     private client: Discord.Client;
@@ -23,34 +26,40 @@ export default class Bot {
                 await message.channel.send("salut :)");
             }
 
-            if (!message.content.startsWith("!")) return;
-            const args = message.content.slice(1).trim().split(/ +/g);
+            if (!message.content.startsWith(prefix)) return;
+            const args = message.content.slice(prefix.length).trim().split(/ +/g);
             if (args.length === 0) return;
             let command = args.shift();
             if (command === undefined) return;
             command = command.toLowerCase();
 
+
             let date = args.shift();
-            if (!date) {
-                date = moment(Date.now()).locale("fr").format("YYYY-MM-DD");
-            }
-
-            let code = EDT.get(command.toUpperCase());
-            if (code) {
-                let lp = command.toUpperCase();
-                let m = await message.channel.send(
-                    `Récupération de l'emplois du temps: ${lp}...`
-                );
-                let dayEdt = await reader.readEdtId(code, date)
-                dayEdt.lp = lp
-
-                if (dayEdt.classes.length > 0) {
-                    m.edit(getEdtMessage(dayEdt))
-                } else {
-                    m.edit(":partying_face: Pas de cours !")
-                }
-            }
+            this.handleEdt(message, command.toUpperCase(), date)
         });
+    }
+
+    async handleEdt(message: Discord.Message, lp: string, date: string | undefined) {
+        
+
+        if (!date) {
+            date = moment(Date.now()).locale("fr").format("YYYY-MM-DD");
+        }
+
+        let code = EDT.get(lp);
+        if (code) {
+            let m = await message.channel.send(
+                `Récupération de l'emplois du temps: ${lp}...`
+            );
+            let dayEdt = await reader.readEdtId(code, date)
+            dayEdt.lp = lp
+
+            if (dayEdt.classes.length > 0) {
+                m.edit(getEdtMessage(dayEdt))
+            } else {
+                m.edit(":partying_face: Pas de cours !")
+            }
+        }
     }
 
     sendEdts = () => {
@@ -78,41 +87,52 @@ export default class Bot {
     }
 }
 
-function getEdtMessage(dayEdt: DayEdt) {
+function getEdtMessage(dayEdt: DayEdt): Discord.MessageEmbed {
 
-    let message = `**${dayEdt.day}** ${dayEdt.lp}\n`
+    const exampleEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(dayEdt.lp)
+            .setDescription(dayEdt.day)
+
 
     for (const classes of dayEdt.classes) {
-        message += `\n:clock2: **${classes.start}h - ${classes.end}h**            :pencil: ${classes.name}\n`;
+        exampleEmbed.addField("\u200B", "\u200B")
+        exampleEmbed.addField(`:clock2: ${classes.start}h - ${classes.end}h`, `:pencil: ${classes.name}`)
 
         if (classes.locations.length > 0) {
-            message += `:door: `
+            let txt = ``
             for (const room of classes.locations) {
-                message += `${room} - `
+                txt += `${room} - `
             }
-            message = message.slice(0, -3)
-            message += `\n`
+            txt = txt.slice(0, -3)
+            exampleEmbed.addField(':door:', txt, true)
+            // exampleEmbed.addField("\u200B", "t")
         }
+        
 
         if (classes.lps.length > 0) {
+            let txt = ""
             for (const lp of classes.lps) {
-                message += `${lp}, `
+                txt += `${lp}, `
             }
-            message = message.slice(0, -2)
-            message += `\n`
+            txt = txt.slice(0, -2)
+            exampleEmbed.addField('LP', txt, true)
+            // exampleEmbed.addField("\u200B", "t")
         }
 
         if (classes.teachers.length > 0) {
+            let txt = ""
             for (const teacher of classes.teachers) {
-                message += `${teacher}  `
+                txt += `${teacher}  `
             }
-            message = message.slice(0, -2)
-            message += `\n`
+            txt = txt.slice(0, -2)
+            exampleEmbed.addField('Profs', txt)
+            // exampleEmbed.addField("\u200B", "t")
         }
 
     }
 
-    return message
+    return exampleEmbed
 
 }
 
