@@ -136,7 +136,7 @@ function getFormattedTeacher(name: string) {
         return emoji + " " + capitalizeName
     }
 
-    return capitalizeName
+    return ":cowboy: " + capitalizeName
 }
 
 const lpList = ["AW", "SIMO", "ASSR", "BIG DATA"]
@@ -150,6 +150,6 @@ const customEmojis = new Map([
     ["DUPUY CHESSA SOPHIE", " :woman_with_veil:"],
     ["BLANCO-LAINE GAELLE", " :woman_with_veil:"],
     ["RIEU DOMINIQUE", ":woman_superhero:"],
-    ["MULOT MATHIEU", ":rat:"],
+    ["MULOT MATHIEU", ":man_with_chinese_cap:"],
     ["COAT FRANCOISE", ":woman:"],
 ]);

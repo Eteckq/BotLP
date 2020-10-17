@@ -3,7 +3,6 @@ import reader from "./edt/reader";
 import moment from "moment";
 import cron from "cron";
 import { DayEdt } from "./edt/wrapper";
-import { lookup } from "dns";
 
 const prefix = "y!"
 
