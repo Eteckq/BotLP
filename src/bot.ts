@@ -32,18 +32,28 @@ export default class Bot {
             if (command === undefined) return;
             command = command.toLowerCase();
 
+            if(command === 'edt'){
+                let lp = args.shift();
+                let date = args.shift();
+                this.handleEdt(message, lp, date)
+            }
 
-            let date = args.shift();
-            this.handleEdt(message, command.toUpperCase(), date)
+            
         });
     }
 
-    async handleEdt(message: Discord.Message, lp: string, date: string | undefined) {
+    async handleEdt(message: Discord.Message, lp: string | undefined, date: string | undefined) {
         
 
         if (!date) {
             date = moment(Date.now()).locale("fr").format("YYYY-MM-DD");
         }
+
+        if(!lp){
+            lp = 'aw'
+        }
+
+        lp = lp.toUpperCase()
 
         let code = EDT.get(lp);
         if (code) {
