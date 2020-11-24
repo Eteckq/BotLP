@@ -159,7 +159,7 @@ const customEmojis = new Map([
   ["FRONT Agnes", ":woman:"],
   ["BLIGNY Caroline", ":flatbread:"],
   ["BONNAUD Laurent", ":exploding_head:"],
-  ["DUPUY CHESSA Sophie", " :woman_with_veil:"],
+  ["DUPUY Sophie", " :woman_with_veil:"],
   ["BLANCO-LAINE Gaelle", " :woman_with_veil:"],
   ["RIEU Dominique", ":woman_superhero:"],
   ["MULOT Mathieu", ":man_with_chinese_cap:"],
